@@ -1,5 +1,5 @@
 'use client';
-import { Box, Button, Stack, TextField } from '@mui/material';
+import { Box, Button, Stack, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 
 export default function Home() {
@@ -10,6 +10,11 @@ export default function Home() {
     },
   ]);
   const [message, setMessage] = useState('');
+  const [url, setUrl] = useState('');
+  const [query, setQuery] = useState('');
+  const [subject, setSubject] = useState('');
+  const [minRating, setMinRating] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
 
   const sendMessage = async () => {
     setMessage('');
@@ -48,6 +53,32 @@ export default function Home() {
     });
   };
 
+  const handleSubmit = async () => {
+    await fetch('/api/scrape', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url }),
+    });
+
+    setUrl('');
+    alert('Data has been scraped and added to the database.');
+  };
+
+  const handleSearch = async () => {
+    const response = await fetch('/api/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query, subject, minRating }),
+    });
+
+    const data = await response.json();
+    setSearchResults(data.results);
+  };
+
   return (
     <Box
       width="100vw"
@@ -60,7 +91,7 @@ export default function Home() {
       <Stack
         direction={'column'}
         width="500px"
-        height="700px"
+        height="auto"
         border="1px solid black"
         p={2}
         spacing={3}
@@ -104,6 +135,61 @@ export default function Home() {
             Send
           </Button>
         </Stack>
+        <Stack direction={'row'} spacing={2}>
+          <TextField
+            label="RMP URL"
+            fullWidth
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+          />
+          <Button variant="contained" onClick={handleSubmit}>
+            Submit URL
+          </Button>
+        </Stack>
+        <Typography variant="h6">Advanced Search</Typography>
+        <TextField
+          label="Search Query"
+          fullWidth
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <TextField
+          label="Subject"
+          fullWidth
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+        />
+        <TextField
+          label="Minimum Rating"
+          type="number"
+          fullWidth
+          value={minRating}
+          onChange={(e) => setMinRating(e.target.value)}
+        />
+        <Button variant="contained" onClick={handleSearch}>
+          Search
+        </Button>
+        {searchResults.length > 0 && (
+          <Box>
+            <Typography variant="h6">Search Results</Typography>
+            {searchResults.map((result, index) => (
+              <Box key={index} border="1px solid gray" borderRadius={8} p={2} mb={2}>
+                <Typography variant="subtitle1">
+                  Professor: {result.professor}
+                </Typography>
+                <Typography variant="body2">
+                  Review: {result.review}
+                </Typography>
+                <Typography variant="body2">
+                  Subject: {result.subject}
+                </Typography>
+                <Typography variant="body2">
+                  Rating: {result.stars}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        )}
       </Stack>
     </Box>
   );
