@@ -78,33 +78,33 @@ export default function HomePage() {
       </SignedOut>
 
       <section className="features-section">
-        <Typography variant="h4" className="section-title">
-          Why Choose Luxury AI?
-        </Typography>
-        <Box className="feature-highlights">
-          <div className="feature-item">
-            <img src="/images/ai-icon.png" alt="AI Powered" className="feature-icon" />
-            <Typography variant="h6" className="feature-title">AI-Powered Insights</Typography>
-            <Typography variant="body1" className="feature-description">
-              Leverage advanced AI algorithms to get tailored professor recommendations and insights.
-            </Typography>
-          </div>
-          <div className="feature-item">
-            <img src="/images/realtime-icon.png" alt="Real-time Data" className="feature-icon" />
-            <Typography variant="h6" className="feature-title">Real-Time Data</Typography>
-            <Typography variant="body1" className="feature-description">
-              Access up-to-date information on professor ratings and reviews to make informed decisions.
-            </Typography>
-          </div>
-          <div className="feature-item">
-            <img src="/images/user-friendly-icon.png" alt="User Friendly" className="feature-icon" />
-            <Typography variant="h6" className="feature-title">User-Friendly Interface</Typography>
-            <Typography variant="body1" className="feature-description">
-              Navigate easily with our intuitive and beautifully designed user interface.
-            </Typography>
-          </div>
-        </Box>
-      </section>
+  <Typography variant="h4" className="section-title">
+    Why Choose Luxury AI?
+  </Typography>
+  <Box className="feature-highlights">
+    <div className="feature-item">
+      <i class="fas fa-brain feature-icon"></i>
+      <Typography variant="h6" className="feature-title">AI-Powered Insights</Typography>
+      <Typography variant="body1" className="feature-description">
+        Leverage advanced AI algorithms to get tailored professor recommendations and insights.
+      </Typography>
+    </div>
+    <div className="feature-item">
+      <i class="fas fa-sync-alt feature-icon"></i>
+      <Typography variant="h6" className="feature-title">Real-Time Data</Typography>
+      <Typography variant="body1" className="feature-description">
+        Access up-to-date information on professor ratings and reviews to make informed decisions.
+      </Typography>
+    </div>
+    <div className="feature-item">
+      <i class="fas fa-user-friends feature-icon"></i>
+      <Typography variant="h6" className="feature-title">User-Friendly Interface</Typography>
+      <Typography variant="body1" className="feature-description">
+        Navigate easily with our intuitive and beautifully designed user interface.
+      </Typography>
+    </div>
+  </Box>
+</section>
 
       <section className="testimonials-section">
         <Typography variant="h4" className="section-title">
