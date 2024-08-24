@@ -15,10 +15,11 @@ export default function RootLayout({ children }) {
             <header className="header">
               <div className="logo">LUXURY AI</div>
               <nav className="nav-menu">
-                <a href="#">About</a>
-                <a href="#">Products</a>
-                <a href="#">Pricing</a>
-                <a href="#">Contact</a>
+                <a href="/features">Features</a>
+                <a href="/pricing">Pricing</a>
+                <a href="/contact">Contact</a>
+                <a href="/sign-in">Sign In</a>
+                <a href="/sign-up">Sign Up</a>
               </nav>
             </header>
             <main className="main-content">{children}</main>
