@@ -9,7 +9,15 @@ body {
   justify-content: center;
   align-items: center;
   overflow-x: hidden;
-  
+ 
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+.page-container {
+  z-index: 5;
 }
 
 .background-overlay {
@@ -17,11 +25,11 @@ body {
   height: 100%;
   position: absolute;
   background: linear-gradient(145deg, #0e0e0e, #1a1a1a);
-  z-index: -1;
+
 }
 
 .header {
-  width: 100%;
+  width: 97%;
   display: flex;
   justify-content: space-between;
   padding: 20px 40px;
@@ -40,16 +48,23 @@ body {
   text-shadow: 2px 2px 8px rgba(255, 215, 0, 0.8);
 }
 
-.nav-menu a {
+.nav-menu {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-button {
   color: #ffd700;
-  margin-left: 20px;
-  text-decoration: none;
   font-weight: bold;
+  text-transform: none;
+  text-decoration: none;
   transition: color 0.3s ease;
 }
 
-.nav-menu a:hover {
+.nav-button:hover {
   color: #ffffff;
+  background-color: transparent;
+  text-shadow: 0 0 5px #ffd700;
 }
 
 .main-content {
@@ -58,7 +73,12 @@ body {
   justify-content: center;
   align-items: center;
   width: 100%;
-  padding-top: 80px;
+  background-image: url('./background.jpg');
+  background-size: cover; 
+  background-repeat: no-repeat;
+  background-position: center;
+  padding-top: 100px; 
+  z-index: 5; 
 }
 
 .hero-section {
@@ -222,3 +242,20 @@ body {
 .footer-links a:hover {
   color: #ffffff;
 }
+
+
+/* .main-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+
+  background-image: url('./background.jpg');
+  background-size: cover; 
+  background-repeat: no-repeat;
+  background-position: center;
+  padding-top: 100px; 
+  z-index: 5; 
+} */
+

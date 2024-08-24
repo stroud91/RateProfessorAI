@@ -2,7 +2,7 @@
 import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 import { Box, Button, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import './globals.css';
+import './styles/globals.css';
 
 export default function HomePage() {
   const { user } = useUser();
@@ -69,12 +69,12 @@ export default function HomePage() {
       </SignedIn>
 
       <SignedOut>
-        <Box className="dashboard sign-in-container">
+        {/* <Box className="dashboard sign-in-container">
           <Typography variant="h6" className="subheading">
             Please sign in to continue.
           </Typography>
           <SignInButton />
-        </Box>
+        </Box> */}
       </SignedOut>
 
       <section className="features-section">
@@ -111,24 +111,23 @@ export default function HomePage() {
           What Our Users Say
         </Typography>
         <Box className="testimonials">
-  <div className="testimonial">
-    <Typography variant="body1" className="testimonial-text">
-      {"Luxury AI has transformed how I choose my courses. The insights are invaluable!"}
-    </Typography>
-    <Typography variant="body2" className="testimonial-author">
-      {"- Sarah W., University Student"}
-    </Typography>
-  </div>
-  <div className="testimonial">
-    <Typography variant="body1" className="testimonial-text">
-      {"A must-have tool for any student. Easy to use and very helpful!"}
-    </Typography>
-    <Typography variant="body2" className="testimonial-author">
-      {"- James P., Graduate Student"}
-    </Typography>
-  </div>
-</Box>
-
+          <div className="testimonial">
+            <Typography variant="body1" className="testimonial-text">
+              {"Luxury AI has transformed how I choose my courses. The insights are invaluable!"}
+            </Typography>
+            <Typography variant="body2" className="testimonial-author">
+              {"- Sarah W., University Student"}
+            </Typography>
+          </div>
+          <div className="testimonial">
+            <Typography variant="body1" className="testimonial-text">
+              {"A must-have tool for any student. Easy to use and very helpful!"}
+            </Typography>
+            <Typography variant="body2" className="testimonial-author">
+              {"- James P., Graduate Student"}
+            </Typography>
+          </div>
+        </Box>
       </section>
 
       <footer className="footer">
