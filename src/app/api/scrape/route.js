@@ -49,7 +49,6 @@ export async function POST(req) {
     });
   }
 
-  // Insert the embeddings into the Pinecone index
   const upsertResponse = await index.upsert({
     vectors: processedData,
     namespace: 'ns1',
