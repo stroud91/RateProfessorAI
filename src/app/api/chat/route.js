@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PineconeClient } from '@pinecone-database/pinecone';
-import OpenAI from 'openai';
+import fetch from 'node-fetch';
 
 const systemPrompt = `
 You are a rate my professor agent to help students find classes, that takes in user questions and answers them.
@@ -9,73 +9,105 @@ Use them to answer the question if needed.
 `;
 
 export async function POST(req) {
-  const data = await req.json();
-  
-  const pinecone = new PineconeClient({
-    apiKey: process.env.PINECONE_API_KEY,
-  });
-  const index = pinecone.Index('rag');
+  try {
+    const data = await req.json();
+    const userMessage = data[data.length - 1].content;
 
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+    // Initialize Pinecone
+    const pinecone = new PineconeClient({
+      apiKey: process.env.PINECONE_API_KEY,
+    });
+    const index = pinecone.Index('rag');
 
-  const text = data[data.length - 1].content;
-  const embeddingResponse = await openai.embeddings.create({
-    model: 'text-embedding-3-small',
-    input: text,
-  });
-  const embedding = embeddingResponse.data[0].embedding;
+    // Step 1: Generate an embedding for the user query using OpenAI's Embedding API
+    const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'text-embedding-ada-002',
+        input: userMessage,
+      }),
+    });
 
-  const results = await index.query({
-    topK: 5,
-    includeMetadata: true,
-    vector: embedding,
-  });
+    if (!embeddingResponse.ok) {
+      throw new Error(`Failed to generate embedding. Status: ${embeddingResponse.status}`);
+    }
 
-  let resultString = '';
-  results.matches.forEach((match) => {
-    resultString += `
-    Returned Results:
-    Professor: ${match.id}
-    Review: ${match.metadata.review}
-    Subject: ${match.metadata.subject}
-    Stars: ${match.metadata.stars}
-    \n\n`;
-  });
+    const embeddingData = await embeddingResponse.json();
+    const embedding = embeddingData.data[0].embedding;
 
-  const lastMessage = data[data.length - 1];
-  const lastMessageContent = lastMessage.content + resultString;
-  const lastDataWithoutLastMessage = data.slice(0, data.length - 1);
+    // Step 2: Query Pinecone with the generated embedding
+    const results = await index.query({
+      topK: 5,
+      includeMetadata: true,
+      vector: embedding,
+    });
 
-  const completion = await openai.chat.completions.create({
-    messages: [
-      {role: 'system', content: systemPrompt},
-      ...lastDataWithoutLastMessage,
-      {role: 'user', content: lastMessageContent},
-    ],
-    model: 'gpt-3.5-turbo',
-    stream: true,
-  });
+    // Format the Pinecone results into a response string
+    let resultString = '';
+    results.matches.forEach((match) => {
+      resultString += `
+      Returned Results:
+      Professor: ${match.id}
+      Review: ${match.metadata.review}
+      Subject: ${match.metadata.subject}
+      Stars: ${match.metadata.stars}
+      \n\n`;
+    });
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      const encoder = new TextEncoder();
-      try {
-        for await (const chunk of completion) {
-          const content = chunk.choices[0]?.delta?.content;
-          if (content) {
-            const text = encoder.encode(content);
-            controller.enqueue(text);
+    // Step 3: Combine the original user message with the Pinecone results
+    const lastMessage = data[data.length - 1];
+    const lastMessageContent = lastMessage.content + resultString;
+    const lastDataWithoutLastMessage = data.slice(0, data.length - 1);
+
+    // Step 4: Send a chat completion request to OpenAI
+    const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...lastDataWithoutLastMessage,
+          { role: 'user', content: lastMessageContent },
+        ],
+        max_tokens: 300,
+        stream: true,
+      }),
+    });
+
+    if (!completionResponse.ok) {
+      throw new Error(`Failed to fetch response from OpenAI. Status: ${completionResponse.status}`);
+    }
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        try {
+          for await (const chunk of completionResponse.body) {
+            const content = chunk.choices[0]?.delta?.content;
+            if (content) {
+              const text = encoder.encode(content);
+              controller.enqueue(text);
+            }
           }
+        } catch (err) {
+          controller.error(err);
+        } finally {
+          controller.close();
         }
-      } catch (err) {
-        controller.error(err);
-      } finally {
-        controller.close();
-      }
-    },
-  });
+      },
+    });
 
-  return new NextResponse(stream);
+    return new NextResponse(stream);
+  } catch (error) {
+    console.error('Error processing chat request:', error);
+    return new NextResponse('Error processing request.', { status: 500 });
+  }
 }
