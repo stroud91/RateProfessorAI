@@ -99,12 +99,12 @@ export default function RootLayout({ children }) {
           {/* Modals for Sign In and Sign Up */}
           <Modal open={openSignIn} onClose={handleCloseSignIn}>
             <Box sx={modalStyles}>
-              <SignIn />
+            <Button href="/sign-in"><SignIn /></Button>
             </Box>
           </Modal>
           <Modal open={openSignUp} onClose={handleCloseSignUp}>
             <Box sx={modalStyles}>
-              <SignUp />
+            <Button href="/sign-up"><SignUp /></Button>
             </Box>
           </Modal>
         </body>

@@ -1,40 +1,39 @@
-import { NextResponse } from 'next/server'
-import { PineconeClient } from '@pinecone-database/pinecone'
-import OpenAI from 'openai'
+import { NextResponse } from 'next/server';
+import { PineconeClient } from '@pinecone-database/pinecone';
+import OpenAI from 'openai';
 
-// System prompt for the AI model
 const systemPrompt = `
 You are a rate my professor agent to help students find classes, that takes in user questions and answers them.
 For every user question, the top 3 professors that match the user question are returned.
 Use them to answer the question if needed.
-`
+`;
 
 export async function POST(req) {
-  const data = await req.json()
+  const data = await req.json();
   
   const pinecone = new PineconeClient({
     apiKey: process.env.PINECONE_API_KEY,
-  })
-  const index = pinecone.Index('rag')
+  });
+  const index = pinecone.Index('rag');
 
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
-  })
+  });
 
-  const text = data[data.length - 1].content
+  const text = data[data.length - 1].content;
   const embeddingResponse = await openai.embeddings.create({
     model: 'text-embedding-3-small',
     input: text,
-  })
-  const embedding = embeddingResponse.data[0].embedding
+  });
+  const embedding = embeddingResponse.data[0].embedding;
 
   const results = await index.query({
     topK: 5,
     includeMetadata: true,
     vector: embedding,
-  })
+  });
 
-  let resultString = ''
+  let resultString = '';
   results.matches.forEach((match) => {
     resultString += `
     Returned Results:
@@ -42,12 +41,12 @@ export async function POST(req) {
     Review: ${match.metadata.review}
     Subject: ${match.metadata.subject}
     Stars: ${match.metadata.stars}
-    \n\n`
-  })
+    \n\n`;
+  });
 
-  const lastMessage = data[data.length - 1]
-  const lastMessageContent = lastMessage.content + resultString
-  const lastDataWithoutLastMessage = data.slice(0, data.length - 1)
+  const lastMessage = data[data.length - 1];
+  const lastMessageContent = lastMessage.content + resultString;
+  const lastDataWithoutLastMessage = data.slice(0, data.length - 1);
 
   const completion = await openai.chat.completions.create({
     messages: [
@@ -57,26 +56,26 @@ export async function POST(req) {
     ],
     model: 'gpt-3.5-turbo',
     stream: true,
-  })
+  });
 
   const stream = new ReadableStream({
     async start(controller) {
-      const encoder = new TextEncoder()
+      const encoder = new TextEncoder();
       try {
         for await (const chunk of completion) {
-          const content = chunk.choices[0]?.delta?.content
+          const content = chunk.choices[0]?.delta?.content;
           if (content) {
-            const text = encoder.encode(content)
-            controller.enqueue(text)
+            const text = encoder.encode(content);
+            controller.enqueue(text);
           }
         }
       } catch (err) {
-        controller.error(err)
+        controller.error(err);
       } finally {
-        controller.close()
+        controller.close();
       }
     },
-  })
+  });
 
-  return new NextResponse(stream)
+  return new NextResponse(stream);
 }

@@ -1,61 +1,63 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 import cheerio from 'cheerio';
-import { Pinecone } from '@pinecone-database/pinecone';
+import { PineconeClient } from '@pinecone-database/pinecone';
 import OpenAI from 'openai';
 
 export async function POST(req) {
   const { url } = await req.json();
 
-  // Fetch the professor page
-  const response = await axios.get(url);
-  const html = response.data;
+  try {
+   
+    const response = await axios.get(url);
+    const html = response.data;
 
-  // Use Cheerio to parse the HTML and extract relevant data
-  const $ = cheerio.load(html);
-  const professorName = $('h1').text().trim();  // Example: Extract the professor's name
-  const reviews = [];
-  $('.Rating__RatingBody-sc-1rhvpxz-0').each((index, element) => {
-    reviews.push({
-      review: $(element).find('.Comments__StyledComments-dzzyvm-0').text().trim(),
-      subject: $(element).find('.Course__StyledCourse-qffpzd-0').text().trim(),
-      stars: $(element).find('.Rating__StyledRatingNumber-sc-1rhvpxz-1').text().trim(),
+  
+    const $ = cheerio.load(html);
+    const professorName = $('h1').text().trim();
+    const reviews = [];
+    $('.Rating__RatingBody-sc-1rhvpxz-0').each((index, element) => {
+      reviews.push({
+        review: $(element).find('.Comments__StyledComments-dzzyvm-0').text().trim(),
+        subject: $(element).find('.Course__StyledCourse-qffpzd-0').text().trim(),
+        stars: $(element).find('.Rating__StyledRatingNumber-sc-1rhvpxz-1').text().trim(),
+      });
     });
-  });
 
-  // Initialize Pinecone and OpenAI
-  const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
-  const index = pc.index('rag').namespace('ns1');
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+   
+    const pinecone = new PineconeClient({ apiKey: process.env.PINECONE_API_KEY });
+    const index = pinecone.Index('rag');
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-  // Generate embeddings for each review
-  const processedData = [];
-  for (const review of reviews) {
-    const response = await openai.embeddings.create({
-      model: 'text-embedding-3-small',
-      input: review.review,
-      encoding_format: 'float',
+  
+    const processedData = [];
+    for (const review of reviews) {
+      const response = await openai.embeddings.create({
+        model: 'text-embedding-ada-002',
+        input: review.review,
+      });
+      const embedding = response.data[0].embedding;
+
+      processedData.push({
+        values: embedding,
+        id: professorName,
+        metadata: {
+          review: review.review,
+          subject: review.subject,
+          stars: review.stars,
+        },
+      });
+    }
+
+    const upsertResponse = await index.upsert({
+      vectors: processedData,
     });
-    const embedding = response.data[0].embedding;
 
-    processedData.push({
-      values: embedding,
-      id: professorName,
-      metadata: {
-        review: review.review,
-        subject: review.subject,
-        stars: review.stars,
-      },
+    return NextResponse.json({
+      success: true,
+      upsertedCount: upsertResponse.upsertedCount,
     });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
-
-  const upsertResponse = await index.upsert({
-    vectors: processedData,
-    namespace: 'ns1',
-  });
-
-  return NextResponse.json({
-    success: true,
-    upsertedCount: upsertResponse.upsertedCount,
-  });
 }

@@ -4,7 +4,7 @@ import React from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 
-export default function Dashboard() {
+export default function DashboardPage() {
   const router = useRouter();
 
   const handleNavigation = (path) => {
@@ -12,44 +12,24 @@ export default function Dashboard() {
   };
 
   return (
-    <Box className="dashboard-container">
-      <Typography variant="h4" className="dashboard-title">
-        Welcome to Luxury AI Dashboard
+    <Box className="dashboard">
+      <Typography variant="h4" className="welcome-text">
+        Welcome to the Dashboard
       </Typography>
-      <Typography variant="h6" className="dashboard-subtitle">
-        Choose a feature to get started:
+      <Typography variant="h6" className="subheading">
+        Select an AI Feature to Get Started:
       </Typography>
       <Box className="feature-options">
-        <Button
-          variant="contained"
-          color="primary"
-          className="feature-button"
-          onClick={() => handleNavigation('/chat')}
-        >
+        <Button className="feature-button" onClick={() => handleNavigation('/chat')}>
           Normal Chat
         </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          className="feature-button"
-          onClick={() => handleNavigation('/link-reader')}
-        >
+        <Button className="feature-button" onClick={() => handleNavigation('/link-reader')}>
           Link Reader
         </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          className="feature-button"
-          onClick={() => handleNavigation('/advanced-search')}
-        >
+        <Button className="feature-button" onClick={() => handleNavigation('/search')}>
           Advanced Search
         </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          className="feature-button"
-          onClick={() => handleNavigation('/sentiment-analysis')}
-        >
+        <Button className="feature-button" onClick={() => handleNavigation('/sentiment-analysis')}>
           Sentiment Analysis
         </Button>
       </Box>
